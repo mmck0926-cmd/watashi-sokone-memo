@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#247348">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="底値メモ">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>わたしの底値メモ</title>
+<style>
+:root{--green:#247348;--pale:#eaf5ee;--bg:#f6f8f6;--ink:#202923;--muted:#6c786f;--line:#e0e8e1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+main{max-width:620px;margin:auto;padding:18px 15px 42px}.hero{display:flex;gap:12px;align-items:center;padding:10px 2px 20px}.logo{width:54px;height:54px;border-radius:17px;background:var(--pale);display:grid;place-items:center;font-size:29px}.hero h1{font-size:22px;margin:0 0 4px}.hero p{margin:0;color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tab{flex:1;border:1px solid var(--line);background:white;border-radius:12px;padding:12px;font-weight:700;color:var(--muted)}.tab.active{background:var(--green);color:white;border-color:var(--green)}
+.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:17px;margin-bottom:13px;box-shadow:0 3px 12px #152b1908}.panel h2{font-size:17px;margin:0 0 13px}.field{margin:11px 0}.field label{display:block;font-size:13px;font-weight:650;margin-bottom:6px}.field input,.field textarea{width:100%;border:1px solid #d8e1d9;border-radius:11px;padding:12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}.field input:focus,.field textarea:focus{outline:2px solid #a4d4b3;border-color:var(--green)}button{font:inherit;cursor:pointer}.primary{width:100%;border:0;border-radius:12px;background:var(--green);color:white;padding:13px;font-weight:750;margin-top:7px}.secondary{border:1px solid var(--line);background:white;color:var(--ink);border-radius:10px;padding:9px 11px;font-size:13px}.search{font-size:17px!important}.result-head{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--pale);border-radius:13px;padding:13px;margin-bottom:12px}.small{font-size:12px;color:var(--muted)}.big{font-size:25px;font-weight:800;color:var(--green)}.entry{border-top:1px solid var(--line);padding:12px 0;display:flex;justify-content:space-between;gap:12px}.entry:first-child{border-top:0}.entry strong{display:block;font-size:15px}.entry .price{font-weight:800;font-size:17px;white-space:nowrap}.entry .meta{font-size:12px;color:var(--muted);margin-top:4px}.empty{padding:16px;background:#f7faf7;border-radius:12px;color:var(--muted);font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.hint{font-size:12px;line-height:1.6;color:var(--muted)}.hidden{display:none!important}.danger{color:#a33}.footer{text-align:center;color:var(--muted);font-size:11px;padding:8px}
+</style>
+</head>
+<body>
+<main>
+ <header class="hero"><div class="logo">🛒</div><div><h1>わたしの底値メモ</h1><p>買った値段を、忘れない。</p></div></header>
+ <nav class="tabs"><button class="tab active" data-tab="search">🔎 値段を調べる</button><button class="tab" data-tab="add">＋ 買った物を記録</button><button class="tab" data-tab="backup">💾 データ管理</button></nav>
+ <section id="searchPanel" class="panel">
+  <h2>商品を検索</h2>
+  <div class="field"><input id="search" class="search" placeholder="例：洗剤、卵、ティッシュ" autocomplete="off"></div>
+  <div id="results"><div class="empty">商品名を入力すると、購入店・価格・購入日・最安値が表示されます。</div></div>
+ </section>
+ <section id="addPanel" class="panel hidden">
+  <h2>新しい購入を記録</h2>
+  <form id="recordForm">
+   <div class="field"><label for="product">商品名 *</label><input id="product" required placeholder="例：キュキュット 詰め替え"></div>
+   <div class="field"><label for="store">買ったお店 *</label><input id="store" required placeholder="例：コスモス、マックスバリュ"></div>
+   <div class="field"><label for="price">値段（円） *</label><input id="price" required type="number" min="0" step="1" inputmode="numeric" placeholder="例：298"></div>
+   <div class="field"><label for="date">購入日</label><input id="date" type="date"></div>
+   <div class="field"><label for="memo">メモ（任意）</label><input id="memo" placeholder="例：詰め替え大容量、特売"></div>
+   <button class="primary" type="submit">記録を保存する</button>
+  </form>
+  <p class="hint">同じ商品を別のお店で買ったときも、1回ずつ記録すると価格を比べられます。</p>
+ </section>
+ <section id="backupPanel" class="panel hidden">
+  <h2>データ管理</h2>
+  <p>記録はこの端末のブラウザ内に保存されます。念のため、ときどきバックアップを保存してください。</p>
+  <div class="row"><button id="exportBtn" class="secondary">バックアップを書き出す</button><button id="importBtn" class="secondary">バックアップを読み込む</button></div>
+  <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+  <p id="count" class="hint"></p>
+  <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+  <button id="deleteBtn" class="secondary danger">すべての記録を削除</button>
+  <p class="hint">注意：Safariの履歴・Webサイトデータを消去すると、保存した記録が消えることがあります。バックアップを保管してください。</p>
+ </section>
+ <div class="footer">あなた専用の買い物価格ノート</div>
+</main>
+<script>
+const KEY='watashiSokoneMemo_v1';
+let records=[];
+try{records=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(records))records=[]}catch(e){records=[]}
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString('ja-JP')+'円';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function save(){localStorage.setItem(KEY,JSON.stringify(records));render($('search').value);$('count').textContent=`保存中の記録：${records.length}件`}
+function switchTab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));['search','add','backup'].forEach(t=>$(t+'Panel').classList.toggle('hidden',t!==name));if(name==='add')$('product').focus();if(name==='search')$('search').focus();$('count').textContent=`保存中の記録：${records.length}件`}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+function render(query=''){
+ const q=query.trim().toLocaleLowerCase('ja');
+ let list=records.filter(r=>r.product.toLocaleLowerCase('ja').includes(q)||r.store.toLocaleLowerCase('ja').includes(q)).sort((a,b)=>b.date.localeCompare(a.date));
+ const root=$('results');
+ if(!q){root.innerHTML='<div class="empty">商品名を入力すると、購入店・価格・購入日・最安値が表示されます。</div>';return}
+ if(!list.length){root.innerHTML='<div class="empty">記録が見つかりません。<br>「買った物を記録」から追加してね。</div>';return}
+ const productMatches=records.filter(r=>r.product.toLocaleLowerCase('ja').includes(q));
+ const min=productMatches.length?Math.min(...productMatches.map(r=>Number(r.price))):null;
+ root.innerHTML=`<div class="result-head"><div><div class="small">検索した商品（記録分）</div><strong>${productMatches.length?esc(productMatches[0].product):'お店の検索結果'}</strong><div class="small">購入記録 ${productMatches.length}件</div></div><div><div class="small">最安値</div><div class="big">${min===null?'—':fmt(min)}</div></div></div>`+
+ list.map(r=>`<div class="entry"><div><strong>${esc(r.product)}</strong><div class="meta">${esc(r.store)} ・ ${esc(r.date||'購入日未入力')}${r.memo?' ・ '+esc(r.memo):''}</div><button class="secondary" style="margin-top:7px" data-del="${r.id}">この記録を削除</button></div><div class="price">${fmt(r.price)}</div></div>`).join('');
+ root.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{if(confirm('この購入記録を削除しますか？')){records=records.filter(r=>String(r.id)!==b.dataset.del);save()}}));
+}
+$('search').addEventListener('input',e=>render(e.target.value));
+$('date').value=new Date().toLocaleDateString('sv-SE');
+$('recordForm').addEventListener('submit',e=>{e.preventDefault();const r={id:Date.now().toString()+Math.random().toString(16).slice(2,6),product:$('product').value.trim(),store:$('store').value.trim(),price:Number($('price').value),date:$('date').value,memo:$('memo').value.trim()};if(!r.product||!r.store||!Number.isFinite(r.price)||r.price<0)return;records.push(r);save();$('search').value=r.product;$('recordForm').reset();$('date').value=new Date().toLocaleDateString('sv-SE');switchTab('search');});
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(records,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='底値メモ_バックアップ.json';a.click();URL.revokeObjectURL(a.href)});
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data)||!data.every(r=>r.product&&r.store&&Number.isFinite(Number(r.price))))throw Error();if(confirm('現在の記録を置き換えて読み込みますか？')){records=data;save();alert('読み込みました。')}}catch(err){alert('このバックアップファイルは読み込めませんでした。')}e.target.value=''});
+$('deleteBtn').addEventListener('click',()=>{if(confirm('すべての記録を削除します。この操作は元に戻せません。')){records=[];save()}});
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+$('count').textContent=`保存中の記録：${records.length}件`;
+</script>
+</body></html>
